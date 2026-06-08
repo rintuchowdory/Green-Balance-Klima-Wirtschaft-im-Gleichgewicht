@@ -1,0 +1,102 @@
+Die Idee „Klimaschutz vs. Wirtschaft“ hat Potenzial, weil sie nicht einfach Schwarz oder Weiß ist. Viele Menschen, Unternehmen und Politiker haben unterschiedliche Interessen.
+
+Statt nur Informationen zu sammeln, würde ich daraus ein interaktives Projekt machen:
+
+Projektname
+
+Deutschland zwischen Klimaschutz und Wirtschaft
+
+oder
+
+Green Balance – Klima & Wirtschaft im Gleichgewicht?
+
+Ziel
+
+Besucher sollen selbst herausfinden können:
+
+Welche Klimamaßnahmen gibt es?
+Welche Auswirkungen haben sie auf Unternehmen?
+Welche Auswirkungen haben sie auf Bürger?
+Wo entstehen Vorteile?
+Wo entstehen Nachteile?
+Mögliche Seiten
+1. Dashboard
+
+Mit Diagrammen:
+
+CO₂-Ausstoß in Deutschland
+Strompreise
+Arbeitsplätze in grünen Branchen
+Arbeitsplätze in traditionellen Industrien
+Anteil erneuerbarer Energien
+2. Konflikt-Atlas
+
+Beispiele:
+
+Thema	Klimaschutz	Wirtschaft
+Kohleausstieg	Weniger CO₂	Jobverluste in Regionen
+E-Autos	Weniger Emissionen	Hohe Umstellungskosten
+Windkraft	Saubere Energie	Konflikte mit Anwohnern
+CO₂-Steuer	Klimaanreiz	Höhere Kosten
+3. Bundesländer-Vergleich
+
+Karte von Deutschland.
+
+Klick auf ein Bundesland:
+
+CO₂-Ausstoß
+Windkraft
+Arbeitslosenquote
+Strompreis
+Industrieanteil
+4. Meinungsbereich
+
+Umfragen:
+
+Würdest du höhere Strompreise akzeptieren, wenn dadurch mehr Klimaschutz erreicht wird?
+
+Ergebnisse als Live-Diagramm.
+
+5. KI-Debatte
+
+Der Besucher wählt:
+
+Unternehmer
+Arbeitnehmer
+Umweltaktivist
+Politiker
+
+Dann erklärt eine KI die Perspektive dieser Rolle.
+
+Technischer Stack
+
+Da du Linux und Webentwicklung lernst:
+
+HTML
+CSS
+JavaScript
+Chart.js
+Python
+Flask oder FastAPI
+Docker
+PostgreSQL
+
+Später:
+
+Leaflet für Karten
+KI-Chat mit API
+Warum das gut für dein Portfolio ist
+
+Du zeigst gleichzeitig:
+
+Frontend
+Backend
+Datenanalyse
+Datenvisualisierung
+Docker
+APIs
+gesellschaftlich relevantes Thema
+
+Das wirkt für Praktika oder Junior-Stellen deutlich stärker als eine einfache To-do-App oder ein Taschenrechner.
+
+Eine andere Richtung wäre noch spannender: „FairEnergy Deutschland“, wo Nutzer selbst Regler verschieben können (mehr Windkraft, mehr Atomkraft, mehr Kohle, höhere CO₂-Steuer) und sofort sehen, wie sich CO₂-Ausstoß, Strompreis und Arbeitsplätze verändern. Das wäre fast wie ein kleines Strategiespiel und könnte Besucher deutlich länger auf der Website halten.

@@ -1,10 +1,11 @@
-# [Project name]
+# Green Balance – Klima & Wirtschaft im Gleichgewicht?
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+An interactive German civic data platform exploring the real trade-offs between climate protection and economic interests in Germany.
 
 ## Run & Operate
 
-- `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
+- `pnpm --filter @workspace/api-server run dev` — run the API server (port 8080)
+- `pnpm --filter @workspace/green-balance run dev` — run the frontend (port 25780)
 - `pnpm run typecheck` — full typecheck across all packages
 - `pnpm run build` — typecheck + build all packages
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
@@ -14,23 +15,39 @@ _Replace the heading above with the project's name, and this line with one sente
 ## Stack
 
 - pnpm workspaces, Node.js 24, TypeScript 5.9
+- Frontend: React + Vite + Wouter + Recharts + Framer Motion + Tailwind CSS (dark theme)
 - API: Express 5
-- DB: PostgreSQL + Drizzle ORM
+- DB: PostgreSQL + Drizzle ORM (polls persistence only; all other data is hardcoded)
 - Validation: Zod (`zod/v4`), `drizzle-zod`
 - API codegen: Orval (from OpenAPI spec)
 - Build: esbuild (CJS bundle)
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `lib/api-spec/openapi.yaml` — OpenAPI contract (source of truth)
+- `lib/db/src/schema/polls.ts` — DB schema for polls and poll options
+- `artifacts/api-server/src/routes/` — API route handlers (dashboard, conflicts, states, polls, debate, simulator)
+- `artifacts/green-balance/src/pages/` — Frontend pages (home, dashboard, konflikt-atlas, bundeslaender, meinungen, debatte, simulator)
+- `artifacts/green-balance/src/components/layout.tsx` — Shared sidebar layout
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- Most data (CO₂ stats, energy data, Bundesländer, conflict topics) is hardcoded in route handlers as realistic German reference data — no DB needed for read-only data
+- Polls are the only DB-backed entity since vote counts need to persist across requests
+- AI debate uses curated perspective text per role × topic — no LLM API required for first build
+- Simulator uses deterministic formulas to calculate energy mix effects in real-time
+- Dark theme enforced globally via `document.documentElement.classList.add("dark")` in App.tsx
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+7-page interactive German climate/economy platform:
+1. **Übersicht** — hero landing with live headline stats
+2. **Dashboard** — Recharts visualizations: CO₂ trend, energy mix, jobs in green vs. traditional
+3. **Konflikt-Atlas** — 8 climate vs. economy conflict topics with scores and impact analysis
+4. **Bundesländer** — 16 German states comparison with CO₂, renewables, jobs, electricity price
+5. **Meinungen** — 4 live opinion polls with real-time vote counts
+6. **Debatte** — Role-based perspective generator (Unternehmer, Arbeitnehmer, Umweltaktivist, Politiker)
+7. **Simulator** — FairEnergy interactive sliders: wind/solar/coal/nuclear mix + CO₂ tax → real-time results
 
 ## User preferences
 
@@ -38,7 +55,9 @@ _Populate as you build — explicit user instructions worth remembering across s
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- Always run `pnpm --filter @workspace/api-spec run codegen` after changing `lib/api-spec/openapi.yaml`
+- After codegen, run `pnpm run typecheck:libs` before artifact typechecks
+- The `poll_options` table has no unique constraint — re-running seed will duplicate options
 
 ## Pointers
 

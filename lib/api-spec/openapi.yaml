@@ -1,22 +1,32 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Green Balance - Klima & Wirtschaft API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: dashboard
+    description: Dashboard statistics
+  - name: conflicts
+    description: Climate vs Economy conflict topics
+  - name: states
+    description: German federal states data
+  - name: polls
+    description: Opinion polls
+  - name: debate
+    description: AI perspective debate
+  - name: simulator
+    description: FairEnergy simulator
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,13 +34,475 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /dashboard/summary:
+    get:
+      operationId: getDashboardSummary
+      tags: [dashboard]
+      summary: Get dashboard summary stats
+      responses:
+        "200":
+          description: Summary stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardSummary"
+
+  /dashboard/co2:
+    get:
+      operationId: getCo2Data
+      tags: [dashboard]
+      summary: Get CO2 emissions over time
+      responses:
+        "200":
+          description: CO2 data
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/YearlyDataPoint"
+
+  /dashboard/energy:
+    get:
+      operationId: getEnergyData
+      tags: [dashboard]
+      summary: Get electricity prices and renewable share over time
+      responses:
+        "200":
+          description: Energy data
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/EnergyDataPoint"
+
+  /dashboard/jobs:
+    get:
+      operationId: getJobsData
+      tags: [dashboard]
+      summary: Get jobs in green vs traditional industries
+      responses:
+        "200":
+          description: Jobs data
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/JobsDataPoint"
+
+  /conflicts:
+    get:
+      operationId: getConflicts
+      tags: [conflicts]
+      summary: Get all conflict topics
+      responses:
+        "200":
+          description: List of conflict topics
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ConflictTopic"
+
+  /conflicts/{id}:
+    get:
+      operationId: getConflict
+      tags: [conflicts]
+      summary: Get a specific conflict topic
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Conflict topic
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConflictTopic"
+        "404":
+          description: Not found
+
+  /states:
+    get:
+      operationId: getStates
+      tags: [states]
+      summary: Get all German federal states with metrics
+      responses:
+        "200":
+          description: List of states
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/StateData"
+
+  /states/{id}:
+    get:
+      operationId: getState
+      tags: [states]
+      summary: Get a specific state
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: State data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StateData"
+        "404":
+          description: Not found
+
+  /polls:
+    get:
+      operationId: getPolls
+      tags: [polls]
+      summary: Get all polls
+      responses:
+        "200":
+          description: List of polls
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Poll"
+
+  /polls/{id}:
+    get:
+      operationId: getPoll
+      tags: [polls]
+      summary: Get a specific poll
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Poll
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Poll"
+        "404":
+          description: Not found
+
+  /polls/{id}/vote:
+    post:
+      operationId: votePoll
+      tags: [polls]
+      summary: Vote on a poll option
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VoteInput"
+      responses:
+        "200":
+          description: Updated poll after vote
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Poll"
+        "400":
+          description: Invalid option
+        "404":
+          description: Not found
+
+  /debate:
+    post:
+      operationId: getDebatePerspective
+      tags: [debate]
+      summary: Get AI perspective for a role
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DebateRequest"
+      responses:
+        "200":
+          description: AI perspective text
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DebateResponse"
+
+  /simulator/calculate:
+    post:
+      operationId: calculateSimulator
+      tags: [simulator]
+      summary: Calculate FairEnergy simulator results
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SimulatorInput"
+      responses:
+        "200":
+          description: Simulator results
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SimulatorResult"
+
 components:
   schemas:
     HealthStatus:
       type: object
+      required: [status]
       properties:
         status:
           type: string
-      required:
-        - status
 
+    DashboardSummary:
+      type: object
+      required: [co2TotalMt, renewablePercent, greenJobs, traditionalJobs, electricityPriceCents, co2Change, renewableChange, greenJobsChange]
+      properties:
+        co2TotalMt:
+          type: number
+          description: Total CO2 in million tonnes
+        renewablePercent:
+          type: number
+          description: Percentage of renewable energy
+        greenJobs:
+          type: integer
+          description: Jobs in green industries (thousands)
+        traditionalJobs:
+          type: integer
+          description: Jobs in traditional energy industries (thousands)
+        electricityPriceCents:
+          type: number
+          description: Electricity price in cents per kWh
+        co2Change:
+          type: number
+          description: YoY change in CO2 percentage
+        renewableChange:
+          type: number
+          description: YoY change in renewable percentage
+        greenJobsChange:
+          type: number
+          description: YoY change in green jobs percentage
+
+    YearlyDataPoint:
+      type: object
+      required: [year, value]
+      properties:
+        year:
+          type: integer
+        value:
+          type: number
+        label:
+          type: ["string", "null"]
+
+    EnergyDataPoint:
+      type: object
+      required: [year, electricityPrice, renewableShare, coalShare, gasShare]
+      properties:
+        year:
+          type: integer
+        electricityPrice:
+          type: number
+        renewableShare:
+          type: number
+        coalShare:
+          type: number
+        gasShare:
+          type: number
+
+    JobsDataPoint:
+      type: object
+      required: [year, greenJobs, coalJobs, oilGasJobs]
+      properties:
+        year:
+          type: integer
+        greenJobs:
+          type: integer
+        coalJobs:
+          type: integer
+        oilGasJobs:
+          type: integer
+
+    ConflictTopic:
+      type: object
+      required: [id, title, climateEffect, economyEffect, climateScore, economyScore, description, severity]
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        climateEffect:
+          type: string
+          description: Positive climate effect description
+        economyEffect:
+          type: string
+          description: Negative economy effect description
+        climateScore:
+          type: number
+          description: Climate benefit 0-10
+        economyScore:
+          type: number
+          description: Economy disruption cost 0-10
+        description:
+          type: string
+        severity:
+          type: string
+          enum: [low, medium, high]
+
+    StateData:
+      type: object
+      required: [id, name, code, co2PerCapita, renewablePercent, unemploymentRate, electricityPrice, industryShare, population, windCapacityMw]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        code:
+          type: string
+          description: Two-letter state code
+        co2PerCapita:
+          type: number
+          description: CO2 tonnes per capita
+        renewablePercent:
+          type: number
+        unemploymentRate:
+          type: number
+        electricityPrice:
+          type: number
+          description: Cents per kWh
+        industryShare:
+          type: number
+          description: Industry as percent of GDP
+        population:
+          type: integer
+          description: Population in thousands
+        windCapacityMw:
+          type: integer
+          description: Installed wind capacity in MW
+
+    Poll:
+      type: object
+      required: [id, question, options, totalVotes]
+      properties:
+        id:
+          type: integer
+        question:
+          type: string
+        options:
+          type: array
+          items:
+            $ref: "#/components/schemas/PollOption"
+        totalVotes:
+          type: integer
+
+    PollOption:
+      type: object
+      required: [id, text, votes]
+      properties:
+        id:
+          type: integer
+        text:
+          type: string
+        votes:
+          type: integer
+
+    VoteInput:
+      type: object
+      required: [optionId]
+      properties:
+        optionId:
+          type: integer
+
+    DebateRequest:
+      type: object
+      required: [role, topic]
+      properties:
+        role:
+          type: string
+          enum: [unternehmer, arbeitnehmer, umweltaktivist, politiker]
+        topic:
+          type: string
+          description: The climate/economy topic to debate
+
+    DebateResponse:
+      type: object
+      required: [role, perspective, keyPoints]
+      properties:
+        role:
+          type: string
+        perspective:
+          type: string
+          description: Full perspective text
+        keyPoints:
+          type: array
+          items:
+            type: string
+
+    SimulatorInput:
+      type: object
+      required: [windPercent, solarPercent, coalPercent, nuclearPercent, co2TaxEuros]
+      properties:
+        windPercent:
+          type: number
+          minimum: 0
+          maximum: 100
+        solarPercent:
+          type: number
+          minimum: 0
+          maximum: 100
+        coalPercent:
+          type: number
+          minimum: 0
+          maximum: 100
+        nuclearPercent:
+          type: number
+          minimum: 0
+          maximum: 100
+        co2TaxEuros:
+          type: number
+          minimum: 0
+          maximum: 500
+
+    SimulatorResult:
+      type: object
+      required: [co2ReductionPercent, electricityPriceCents, jobsCreated, jobsLost, renewablePercent, feasibilityScore]
+      properties:
+        co2ReductionPercent:
+          type: number
+        electricityPriceCents:
+          type: number
+        jobsCreated:
+          type: integer
+        jobsLost:
+          type: integer
+        renewablePercent:
+          type: number
+        feasibilityScore:
+          type: number
+          description: 0-100 score of how feasible/balanced this energy mix is
+        warnings:
+          type: array
+          items:
+            type: string
