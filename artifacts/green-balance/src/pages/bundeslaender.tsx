@@ -61,19 +61,19 @@ export default function Bundeslaender() {
                       <TableCell className="text-right">
                         <div className="flex flex-col items-end gap-1">
                           <span>{state.co2PerCapita.toFixed(1)}</span>
-                          <Progress value={(state.co2PerCapita / maxCo2) * 100} className="w-16 h-1 bg-muted" indicatorColor="bg-destructive" />
+                          <Progress value={(state.co2PerCapita / maxCo2) * 100} className="w-16 h-1 bg-muted [&>div]:bg-destructive" />
                         </div>
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex flex-col items-end gap-1">
                           <span className="text-chart-1 font-medium">{state.renewablePercent}%</span>
-                          <Progress value={state.renewablePercent} className="w-16 h-1 bg-muted" indicatorColor="bg-chart-1" />
+                          <Progress value={state.renewablePercent} className="w-16 h-1 bg-muted [&>div]:bg-chart-1" />
                         </div>
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex flex-col items-end gap-1">
                           <span>{state.windCapacityMw.toLocaleString('de-DE')}</span>
-                          <Progress value={(state.windCapacityMw / maxWind) * 100} className="w-16 h-1 bg-muted" indicatorColor="bg-chart-2" />
+                          <Progress value={(state.windCapacityMw / maxWind) * 100} className="w-16 h-1 bg-muted [&>div]:bg-chart-2" />
                         </div>
                       </TableCell>
                       <TableCell className="text-right">{state.industryShare}%</TableCell>

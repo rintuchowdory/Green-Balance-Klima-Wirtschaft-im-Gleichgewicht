@@ -7,7 +7,8 @@ import {
   MessageSquare, 
   MessagesSquare, 
   Sliders, 
-  Leaf 
+  Leaf,
+  Bot
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -19,6 +20,7 @@ const NAV_ITEMS = [
   { href: "/meinungen", label: "Meinungen", icon: MessageSquare },
   { href: "/debatte", label: "Debatte", icon: MessagesSquare },
   { href: "/simulator", label: "Simulator", icon: Sliders },
+  { href: "/ki-chat", label: "KI-Chat", icon: Bot },
 ];
 
 export default function Layout({ children }: { children: ReactNode }) {

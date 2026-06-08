@@ -6,6 +6,7 @@ import statesRouter from "./states";
 import pollsRouter from "./polls";
 import debateRouter from "./debate";
 import simulatorRouter from "./simulator";
+import openaiRouter from "./openai/index";
 
 const router: IRouter = Router();
 
@@ -16,5 +17,6 @@ router.use("/states", statesRouter);
 router.use("/polls", pollsRouter);
 router.use("/debate", debateRouter);
 router.use("/simulator", simulatorRouter);
+router.use("/openai", openaiRouter);
 
 export default router;

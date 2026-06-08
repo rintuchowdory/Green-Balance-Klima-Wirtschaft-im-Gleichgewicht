@@ -11,7 +11,8 @@ import Bundeslaender from "@/pages/bundeslaender";
 import Meinungen from "@/pages/meinungen";
 import Debatte from "@/pages/debatte";
 import Simulator from "@/pages/simulator";
-import { useEffect, useState } from "react";
+import KiChat from "@/pages/ki-chat";
+import { useEffect } from "react";
 
 const queryClient = new QueryClient();
 
@@ -35,6 +36,7 @@ function Router() {
         <Route path="/meinungen" component={Meinungen} />
         <Route path="/debatte" component={Debatte} />
         <Route path="/simulator" component={Simulator} />
+        <Route path="/ki-chat" component={KiChat} />
         <Route component={NotFound} />
       </Switch>
     </Layout>
