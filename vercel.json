@@ -1,0 +1,22 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "artifacts/green-balance/package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist/public"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/artifacts/green-balance/dist/public/$1"
+    }
+  ],
+  "env": {
+    "PORT": "3000",
+    "BASE_PATH": "/"
+  }
+}
