@@ -5,14 +5,14 @@
       "src": "artifacts/green-balance/package.json",
       "use": "@vercel/static-build",
       "config": {
-        "distDir": "dist"
+        "distDir": "dist/public"
       }
     }
   ],
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "/artifacts/green-balance/dist/$1"
+      "dest": "/artifacts/green-balance/dist/public/$1"
     }
   ]
 }
