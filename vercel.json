@@ -5,6 +5,7 @@
   "outputDirectory": "artifacts/green-balance/dist/public",
   "framework": "vite",
   "rewrites": [
+    { "source": "/api/(.*)", "destination": "https://green-balance-klima-wirtschaft-im-gleichgewic-rintu-cs-projects.vercel.app/api/$1" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
