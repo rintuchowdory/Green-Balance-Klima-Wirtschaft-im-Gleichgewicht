@@ -30,6 +30,15 @@ export function setBaseUrl(url: string | null): void {
 }
 
 /**
+ * Get the currently configured base URL (see setBaseUrl), or null if unset.
+ * Useful when a caller needs to build an absolute URL manually (e.g. for
+ * native fetch/EventSource calls that bypass customFetch).
+ */
+export function getBaseUrl(): string | null {
+  return _baseUrl;
+}
+
+/**
  * Register a getter that supplies a bearer auth token.  Before every fetch
  * the getter is invoked; when it returns a non-null string, an
  * `Authorization: Bearer <token>` header is attached to the request.
