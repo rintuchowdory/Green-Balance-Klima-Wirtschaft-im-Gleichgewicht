@@ -1,4 +1,5 @@
 import { useGetStates } from "@workspace/api-client-react";
+import { FALLBACK_STATES } from "@/lib/fallback-data";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -7,7 +8,9 @@ import { Globe, Wind, Factory, Zap, Users } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 
 export default function Bundeslaender() {
-  const { data: states, isLoading } = useGetStates();
+  const { data: apiStates, isLoading } = useGetStates();
+  // Ohne API-Antwort greift der eingebaute Datensatz
+  const states = apiStates && apiStates.length > 0 ? apiStates : FALLBACK_STATES;
 
   const maxWind = states ? Math.max(...states.map(s => s.windCapacityMw)) : 0;
   const maxCo2 = states ? Math.max(...states.map(s => s.co2PerCapita)) : 0;

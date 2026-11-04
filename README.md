@@ -16,11 +16,18 @@ Green Balance zeigt, wie Klimapolitik und Wirtschaft in Deutschland zusammenhän
 |-------|-------------|
 | Übersicht | Hero-Landing mit aktuellen Klimakennzahlen |
 | Dashboard | CO₂-Trend, Energiemix & Jobs (Recharts) |
-| Konflikt-Atlas | 8 Klima-vs-Wirtschaft Konfliktthemen mit Scores |
+| Konflikt-Atlas | 14 Klima-vs-Wirtschaft Konfliktthemen mit Scores |
 | Bundesländer | Vergleich aller 16 Bundesländer (CO₂, Erneuerbare, Jobs) |
 | Meinungen | 4 Live-Abstimmungen mit Echtzeit-Ergebnissen |
 | Debatte | Perspektivgenerator: Unternehmer · Arbeitnehmer · Aktivist · Politiker |
 | Simulator | Energiemix-Regler → CO₂-Auswirkungen in Echtzeit |
+
+## Daten und Ausfallsicherheit
+
+Der API-Server liefert die Objekte (Konfliktthemen, Bundesländer) zur Laufzeit. Antwortet der
+API-Proxy nicht (auf Vercel kam zeitweise HTTP 508 zurück), greifen Konflikt-Atlas und
+Bundesländer auf `artifacts/green-balance/src/lib/fallback-data.ts` zurück: derselbe Datensatz,
+im Frontend mitgebaut. Die Seiten bleiben damit gefüllt, auch wenn das Backend schweigt.
 
 ## Stack
 

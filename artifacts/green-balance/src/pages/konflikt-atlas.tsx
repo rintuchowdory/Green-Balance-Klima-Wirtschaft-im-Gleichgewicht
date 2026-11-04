@@ -1,4 +1,5 @@
 import { useGetConflicts } from "@workspace/api-client-react";
+import { FALLBACK_CONFLICTS } from "@/lib/fallback-data";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -7,7 +8,9 @@ import { motion } from "framer-motion";
 import { Map, Leaf, TrendingDown, AlertTriangle } from "lucide-react";
 
 export default function KonfliktAtlas() {
-  const { data: conflicts, isLoading } = useGetConflicts();
+  const { data: apiConflicts, isLoading } = useGetConflicts();
+  // Wenn der API-Proxy nicht antwortet, bleibt der Atlas trotzdem gefüllt
+  const conflicts = apiConflicts && apiConflicts.length > 0 ? apiConflicts : FALLBACK_CONFLICTS;
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
