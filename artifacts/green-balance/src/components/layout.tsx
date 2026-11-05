@@ -69,8 +69,8 @@ export default function Layout({ children }: { children: ReactNode }) {
         <footer className="border-t border-border mt-8">
           <div className="max-w-7xl mx-auto px-4 md:px-8 lg:px-12 py-6 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-muted-foreground">
             <span>Green Balance – privates Bildungsangebot, keine Rechts- oder Anlageberatung.</span>
-            <a href="/impressum.html" className="hover:text-foreground underline-offset-4 hover:underline">Impressum</a>
-            <a href="/datenschutz.html" className="hover:text-foreground underline-offset-4 hover:underline">Datenschutz</a>
+            <a href={`${base}impressum.html`} className="hover:text-foreground underline-offset-4 hover:underline">Impressum</a>
+            <a href={`${base}datenschutz.html`} className="hover:text-foreground underline-offset-4 hover:underline">Datenschutz</a>
           </div>
         </footer>
       </main>

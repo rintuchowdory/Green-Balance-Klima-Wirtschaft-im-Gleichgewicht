@@ -166,7 +166,7 @@ export default function KiChat() {
         Antworten können falsch sein. Das Modell kennt die Seiten dieser Website, prüft aber keine
         Quellen. Keine personenbezogenen Daten eingeben. Ihre Nachricht wird zur Beantwortung an
         Groq übermittelt und bei uns nicht gespeichert – Details in der{" "}
-        <a href="/datenschutz.html" className="underline underline-offset-2 hover:text-foreground">
+        <a href={`${import.meta.env.BASE_URL}datenschutz.html`} className="underline underline-offset-2 hover:text-foreground">
           Datenschutzerklärung
         </a>.
       </p>
