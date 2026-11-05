@@ -64,6 +64,15 @@ export default function Layout({ children }: { children: ReactNode }) {
         <div className="max-w-7xl mx-auto p-4 md:p-8 lg:p-12">
           {children}
         </div>
+
+        {/* Impressum und Datenschutz sind statische Seiten, deshalb normale Links */}
+        <footer className="border-t border-border mt-8">
+          <div className="max-w-7xl mx-auto px-4 md:px-8 lg:px-12 py-6 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-muted-foreground">
+            <span>Green Balance – privates Bildungsangebot, keine Rechts- oder Anlageberatung.</span>
+            <a href="/impressum.html" className="hover:text-foreground underline-offset-4 hover:underline">Impressum</a>
+            <a href="/datenschutz.html" className="hover:text-foreground underline-offset-4 hover:underline">Datenschutz</a>
+          </div>
+        </footer>
       </main>
     </div>
   );
