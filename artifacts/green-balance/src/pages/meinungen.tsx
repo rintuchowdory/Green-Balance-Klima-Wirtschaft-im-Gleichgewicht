@@ -5,9 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { motion } from "framer-motion";
 import { MessageSquare, CheckCircle2 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
+import { applyVotes, loadVotes, saveVote, type LocalVote } from "@/lib/local-votes";
 
 export default function Meinungen() {
   const { data: polls, isLoading } = useGetPolls();
@@ -16,18 +17,29 @@ export default function Meinungen() {
   const { toast } = useToast();
   
   const [votedPolls, setVotedPolls] = useState<Set<number>>(new Set());
+  const [localVotes, setLocalVotes] = useState<LocalVote[]>([]);
+
+  // Frueher abgegebene Stimmen aus dem Browser laden
+  useEffect(() => {
+    const saved = loadVotes();
+    setLocalVotes(saved);
+    setVotedPolls(new Set(saved.map((v) => v.pollId)));
+  }, []);
 
   const handleVote = (pollId: number, optionId: number) => {
-    votePoll.mutate({ id: pollId, data: { optionId } }, {
-      onSuccess: () => {
-        setVotedPolls(prev => new Set(prev).add(pollId));
-        queryClient.invalidateQueries({ queryKey: getGetPollsQueryKey() });
-        toast({
-          title: "Abstimmung erfasst",
-          description: "Vielen Dank für Ihre Teilnahme.",
-        });
-      }
+    // Ohne erreichbaren API-Server zaehlt die Stimme lokal weiter, damit die
+    // Umfrage nicht wirkungslos wirkt.
+    setLocalVotes(saveVote({ pollId, optionId }));
+    setVotedPolls((prev) => new Set(prev).add(pollId));
+    toast({
+      title: "Abstimmung erfasst",
+      description: "Ihre Stimme ist in diesem Browser gespeichert.",
     });
+
+    votePoll.mutate(
+      { id: pollId, data: { optionId } },
+      { onSuccess: () => queryClient.invalidateQueries({ queryKey: getGetPollsQueryKey() }) }
+    );
   };
 
   return (
@@ -45,7 +57,8 @@ export default function Meinungen() {
           Array.from({ length: 4 }).map((_, i) => (
             <Skeleton key={i} className="h-64 w-full rounded-xl" />
           ))
-        ) : polls?.map((poll, i) => {
+        ) : polls?.map((rawPoll, i) => {
+          const poll = applyVotes(rawPoll, localVotes);
           const isVoted = votedPolls.has(poll.id);
           const totalVotes = poll.options.reduce((acc, opt) => acc + opt.votes, 0) || 1; // prevent div by 0
 
@@ -103,6 +116,11 @@ export default function Meinungen() {
           );
         })}
       </div>
+
+      <p className="text-xs text-muted-foreground">
+        Hinweis: Ohne erreichbaren API-Server zählt Ihre Stimme nur in diesem Browser.
+        Die angezeigten Zahlen sind ein persönliches Stimmungsbild, keine geteilte Statistik.
+      </p>
     </div>
   );
 }

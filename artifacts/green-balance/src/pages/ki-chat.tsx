@@ -35,6 +35,24 @@ export default function KiChat() {
   const { mutateAsync: createConversation } = useCreateOpenaiConversation();
   const { mutateAsync: deleteConversation } = useDeleteOpenaiConversation();
 
+  // Ohne erreichbaren API-Server (kein OPENAI_API_KEY auf Vercel) wuerde der Chat
+  // stumm scheitern - deshalb vorher pruefen und ehrlich hinweisen.
+  const [apiDown, setApiDown] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch(`${getBaseUrl() ?? ""}/api/healthz`)
+      .then((res) => {
+        if (!cancelled) setApiDown(!res.ok);
+      })
+      .catch(() => {
+        if (!cancelled) setApiDown(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
@@ -171,6 +189,24 @@ export default function KiChat() {
       e.preventDefault();
       sendMessage(input);
     }
+  }
+
+  if (apiDown) {
+    return (
+      <div className="max-w-2xl mx-auto py-16 text-center space-y-4">
+        <Bot className="w-10 h-10 text-primary mx-auto" />
+        <h1 className="text-2xl font-serif font-bold">KI-Chat ist gerade nicht verfügbar</h1>
+        <p className="text-muted-foreground">
+          Der Chat braucht den API-Server mit einem hinterlegten OpenAI-Schlüssel. Auf dieser
+          Vercel-Domain läuft er noch nicht, deshalb ist das Feld hier bewusst gesperrt statt
+          stillschweigend zu scheitern.
+        </p>
+        <p className="text-sm text-muted-foreground">
+          Alle anderen Bereiche – Übersicht, Dashboard, Konflikt-Atlas, Bundesländer und Meinungen –
+          funktionieren ohne Server.
+        </p>
+      </div>
+    );
   }
 
   return (
