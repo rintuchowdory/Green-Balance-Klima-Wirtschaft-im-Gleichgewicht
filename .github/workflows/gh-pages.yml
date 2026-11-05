@@ -31,6 +31,8 @@ jobs:
 
       - run: pnpm install --no-frozen-lockfile
 
+      - name: Test frontend
+        run: pnpm --filter @workspace/green-balance run test
       - name: Build frontend
         run: pnpm --filter @workspace/green-balance run build
         env:
