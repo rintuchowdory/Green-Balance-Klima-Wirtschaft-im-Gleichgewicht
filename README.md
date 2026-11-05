@@ -45,6 +45,21 @@ Damit funktionieren Dashboard, Konflikt-Atlas, Bundesländer und Meinungen auch 
 `api-server`-Projekt auf Vercel nicht deployt. Nur schreibende Aufrufe (Abstimmen, Simulator,
 KI-Chat) brauchen den laufenden API-Server.
 
+## KI-Chat über Groq
+
+Der Chat läuft nicht über den Vercel-API-Server, sondern über einen eigenen Cloudflare Worker
+(`workers/green-balance-chat/`). Er nimmt den Verlauf an, ruft die OpenAI-kompatible Groq-API
+(`openai/gpt-oss-120b`) und hält den Schlüssel als Worker-Secret `GROQ_API_KEY` geheim.
+
+```bash
+cd workers/green-balance-chat
+wrangler deploy                       # https://green-balance-chat.chowdoryrintu.workers.dev
+printf '%s' "$GROQ_API_KEY" | wrangler secret put GROQ_API_KEY
+```
+
+Im Frontend zeigt `VITE_CHAT_ENDPOINT` auf den Worker; ohne diese Variable wird die
+Produktions-URL verwendet.
+
 ## Stack
 
 - **Frontend:** React + Vite + Tailwind CSS + Framer Motion + Recharts

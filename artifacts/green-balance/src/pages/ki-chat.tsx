@@ -1,366 +1,171 @@
-import { useState, useRef, useEffect } from "react";
-import { Bot, Send, Plus, Trash2, MessageCircle, Loader2 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
-import { useListOpenaiConversations, useCreateOpenaiConversation, useDeleteOpenaiConversation, getBaseUrl } from "@workspace/api-client-react";
+import { useEffect, useRef, useState } from "react";
+import { Bot, Send, Loader2, RotateCcw, Sparkles } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+
+// Der Chat laeuft ueber einen Cloudflare Worker, der die Groq-API aufruft.
+// Der Schluessel liegt dort als Secret, nicht im Browser.
+const CHAT_ENDPOINT =
+  (import.meta.env.VITE_CHAT_ENDPOINT as string | undefined) ??
+  "https://green-balance-chat.chowdoryrintu.workers.dev";
 
 interface Message {
   role: "user" | "assistant";
   content: string;
-  streaming?: boolean;
 }
 
-interface Conversation {
-  id: number;
-  title: string;
-  createdAt: string;
-}
-
-const EXAMPLE_QUESTIONS = [
-  "Wie hoch sind Deutschlands CO₂-Emissionen aktuell?",
-  "Welche Bundesländer nutzen am meisten erneuerbare Energien?",
-  "Was kostet die Energiewende die deutsche Wirtschaft?",
-  "Wie viele Jobs schafft die Solarindustrie in Deutschland?",
-  "Was sind die größten Konflikte zwischen Klimaschutz und Industrie?",
+const STARTER = [
+  "Warum ist der Kohleausstieg wirtschaftlich so schwierig?",
+  "Was würde ein Tempolimit wirklich für das Klima bringen?",
+  "Wie hängen Strompreis und Industriearbeitsplätze zusammen?",
 ];
 
 export default function KiChat() {
-  const [selectedConvId, setSelectedConvId] = useState<number | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
-  const [isStreaming, setIsStreaming] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLTextAreaElement>(null);
-
-  const { data: conversations = [], refetch: refetchConversations } = useListOpenaiConversations();
-  const { mutateAsync: createConversation } = useCreateOpenaiConversation();
-  const { mutateAsync: deleteConversation } = useDeleteOpenaiConversation();
-
-  // Ohne erreichbaren API-Server (kein OPENAI_API_KEY auf Vercel) wuerde der Chat
-  // stumm scheitern - deshalb vorher pruefen und ehrlich hinweisen.
-  const [apiDown, setApiDown] = useState(false);
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const endRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    let cancelled = false;
-    fetch(`${getBaseUrl() ?? ""}/api/healthz`)
-      .then((res) => {
-        if (!cancelled) setApiDown(!res.ok);
-      })
-      .catch(() => {
-        if (!cancelled) setApiDown(true);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+    endRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, pending]);
 
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  async function send(text: string) {
+    const question = text.trim();
+    if (!question || pending) return;
 
-  async function loadConversation(id: number) {
-    setSelectedConvId(id);
-    const res = await fetch(`${getBaseUrl() ?? ""}/api/openai/conversations/${id}`);
-    const data = await res.json();
-    setMessages(
-      (data.messages ?? []).map((m: { role: string; content: string }) => ({
-        role: m.role as "user" | "assistant",
-        content: m.content,
-      }))
-    );
-  }
-
-  async function startNewConversation() {
-    const title = `Chat vom ${new Date().toLocaleDateString("de-DE", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    })}`;
-    const conv = await createConversation({ data: { title } });
-    await refetchConversations();
-    setSelectedConvId(conv.id);
-    setMessages([]);
-    inputRef.current?.focus();
-  }
-
-  async function handleDelete(id: number, e: React.MouseEvent) {
-    e.stopPropagation();
-    await deleteConversation({ id });
-    await refetchConversations();
-    if (selectedConvId === id) {
-      setSelectedConvId(null);
-      setMessages([]);
-    }
-  }
-
-  async function sendMessage(text: string) {
-    if (!text.trim() || isStreaming) return;
-
-    let convId = selectedConvId;
-    if (!convId) {
-      const title = text.slice(0, 60) + (text.length > 60 ? "…" : "");
-      const conv = await createConversation({ data: { title } });
-      await refetchConversations();
-      convId = conv.id;
-      setSelectedConvId(convId);
-    }
-
-    setMessages((prev) => [...prev, { role: "user", content: text }]);
+    const next: Message[] = [...messages, { role: "user", content: question }];
+    setMessages(next);
     setInput("");
-    setIsStreaming(true);
-
-    setMessages((prev) => [
-      ...prev,
-      { role: "assistant", content: "", streaming: true },
-    ]);
+    setError(null);
+    setPending(true);
 
     try {
-      const res = await fetch(`${getBaseUrl() ?? ""}/api/openai/conversations/${convId}/messages`, {
+      const res = await fetch(`${CHAT_ENDPOINT}/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content: text }),
+        body: JSON.stringify({ messages: next.slice(-10) }),
       });
-
-      if (!res.body) throw new Error("No stream");
-
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = "";
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split("\n");
-        buffer = lines.pop() ?? "";
-
-        for (const line of lines) {
-          if (!line.startsWith("data: ")) continue;
-          try {
-            const json = JSON.parse(line.slice(6));
-            if (json.done) break;
-            if (json.content) {
-              setMessages((prev) => {
-                const updated = [...prev];
-                const last = updated[updated.length - 1];
-                if (last?.role === "assistant") {
-                  updated[updated.length - 1] = {
-                    ...last,
-                    content: last.content + json.content,
-                  };
-                }
-                return updated;
-              });
-            }
-          } catch {}
-        }
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || typeof data.reply !== "string") {
+        throw new Error(data.error ?? `HTTP ${res.status}`);
       }
-
-      setMessages((prev) => {
-        const updated = [...prev];
-        const last = updated[updated.length - 1];
-        if (last?.role === "assistant") {
-          updated[updated.length - 1] = { ...last, streaming: false };
-        }
-        return updated;
-      });
+      setMessages([...next, { role: "assistant", content: data.reply }]);
     } catch (err) {
-      setMessages((prev) => {
-        const updated = [...prev];
-        const last = updated[updated.length - 1];
-        if (last?.role === "assistant") {
-          updated[updated.length - 1] = {
-            ...last,
-            content: "Fehler beim Abrufen der Antwort. Bitte versuche es erneut.",
-            streaming: false,
-          };
-        }
-        return updated;
-      });
+      setError(
+        err instanceof Error && err.message.includes("Groq")
+          ? "Der Assistent ist gerade ausgelastet. Bitte in einem Moment nochmal versuchen."
+          : "Die Antwort kam nicht an. Bitte Verbindung prüfen und nochmal senden."
+      );
     } finally {
-      setIsStreaming(false);
+      setPending(false);
     }
-  }
-
-  function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage(input);
-    }
-  }
-
-  if (apiDown) {
-    return (
-      <div className="max-w-2xl mx-auto py-16 text-center space-y-4">
-        <Bot className="w-10 h-10 text-primary mx-auto" />
-        <h1 className="text-2xl font-serif font-bold">KI-Chat ist gerade nicht verfügbar</h1>
-        <p className="text-muted-foreground">
-          Der Chat braucht den API-Server mit einem hinterlegten OpenAI-Schlüssel. Auf dieser
-          Vercel-Domain läuft er noch nicht, deshalb ist das Feld hier bewusst gesperrt statt
-          stillschweigend zu scheitern.
-        </p>
-        <p className="text-sm text-muted-foreground">
-          Alle anderen Bereiche – Übersicht, Dashboard, Konflikt-Atlas, Bundesländer und Meinungen –
-          funktionieren ohne Server.
-        </p>
-      </div>
-    );
   }
 
   return (
-    <div className="flex h-[calc(100vh-8rem)] gap-4">
-      {/* Sidebar */}
-      <div className="w-64 flex-shrink-0 flex flex-col gap-2">
-        <button
-          onClick={startNewConversation}
-          className="flex items-center gap-2 w-full px-4 py-3 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-medium text-sm"
-        >
-          <Plus className="w-4 h-4" />
-          Neues Gespräch
-        </button>
-
-        <div className="flex-1 overflow-y-auto space-y-1 mt-2">
-          <p className="text-xs text-muted-foreground px-2 mb-2 font-medium uppercase tracking-wider">
-            Verlauf
-          </p>
-          {(conversations as Conversation[]).length === 0 && (
-            <p className="text-xs text-muted-foreground px-2 py-4 text-center">
-              Noch keine Gespräche
-            </p>
-          )}
-          {(conversations as Conversation[]).map((conv) => (
-            <div
-              key={conv.id}
-              onClick={() => loadConversation(conv.id)}
-              className={`group flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition-colors text-sm ${
-                selectedConvId === conv.id
-                  ? "bg-secondary text-secondary-foreground"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
-              }`}
-            >
-              <MessageCircle className="w-3.5 h-3.5 flex-shrink-0" />
-              <span className="flex-1 truncate">{conv.title}</span>
-              <button
-                onClick={(e) => handleDelete(conv.id, e)}
-                className="opacity-0 group-hover:opacity-100 hover:text-destructive transition-opacity"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          ))}
-        </div>
+    <div className="flex flex-col gap-6 pb-16 max-w-3xl mx-auto">
+      <div className="space-y-2">
+        <h1 className="text-3xl md:text-4xl font-serif font-bold tracking-tight flex items-center gap-3">
+          <Bot className="w-8 h-8 text-primary" />
+          KI-Chat
+        </h1>
+        <p className="text-muted-foreground text-lg">
+          Fragen zu Klima, Wirtschaft und den Konflikten auf dieser Seite. Die Antworten kommen von
+          einem Sprachmodell über Groq.
+        </p>
       </div>
 
-      {/* Chat area */}
-      <div className="flex-1 flex flex-col bg-card/30 rounded-xl border border-border overflow-hidden">
-        {/* Header */}
-        <div className="flex items-center gap-3 px-6 py-4 border-b border-border bg-card/50">
-          <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
-            <Bot className="w-4 h-4 text-primary" />
-          </div>
-          <div>
-            <h2 className="font-semibold text-sm">KI-Assistent</h2>
-            <p className="text-xs text-muted-foreground">Fragen zu Klima & Wirtschaft in Deutschland</p>
-          </div>
-        </div>
-
-        {/* Messages */}
-        <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+      <Card className="flex-1">
+        <CardContent className="p-5 space-y-4 min-h-[22rem]">
           {messages.length === 0 && (
-            <div className="flex flex-col items-center justify-center h-full gap-6 py-12">
-              <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-                <Bot className="w-8 h-8 text-primary" />
-              </div>
-              <div className="text-center">
-                <h3 className="text-lg font-semibold mb-1">Wie kann ich helfen?</h3>
-                <p className="text-muted-foreground text-sm max-w-sm">
-                  Stell mir Fragen zu Klimaschutz, Energiepolitik und wirtschaftlichen Zusammenhängen in Deutschland.
-                </p>
-              </div>
-              <div className="grid grid-cols-1 gap-2 w-full max-w-lg">
-                {EXAMPLE_QUESTIONS.map((q) => (
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-primary" />
+                Zum Einstieg ein paar Fragen, die oft gestellt werden:
+              </p>
+              <div className="flex flex-col gap-2">
+                {STARTER.map((question) => (
                   <button
-                    key={q}
-                    onClick={() => sendMessage(q)}
-                    className="text-left text-sm px-4 py-2.5 rounded-lg border border-border hover:bg-muted hover:border-primary/40 transition-colors text-muted-foreground hover:text-foreground"
+                    key={question}
+                    onClick={() => send(question)}
+                    className="text-left text-sm rounded-lg border px-4 py-3 hover:border-primary/50 hover:bg-primary/5 transition-colors"
                   >
-                    {q}
+                    {question}
                   </button>
                 ))}
               </div>
             </div>
           )}
 
-          <AnimatePresence initial={false}>
-            {messages.map((msg, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.2 }}
-                className={`flex gap-3 ${msg.role === "user" ? "justify-end" : "justify-start"}`}
-              >
-                {msg.role === "assistant" && (
-                  <div className="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0 mt-1">
-                    <Bot className="w-3.5 h-3.5 text-primary" />
-                  </div>
-                )}
-                <div
-                  className={`max-w-[80%] px-4 py-3 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap ${
-                    msg.role === "user"
-                      ? "bg-primary text-primary-foreground rounded-br-sm"
-                      : "bg-muted text-foreground rounded-bl-sm"
-                  }`}
-                >
-                  {msg.content}
-                  {msg.streaming && (
-                    <span className="inline-block w-1.5 h-4 bg-current ml-0.5 animate-pulse rounded-sm" />
-                  )}
-                </div>
-              </motion.div>
-            ))}
-          </AnimatePresence>
-          <div ref={messagesEndRef} />
-        </div>
-
-        {/* Input */}
-        <div className="px-4 py-4 border-t border-border bg-card/50">
-          <div className="flex gap-2 items-end">
-            <textarea
-              ref={inputRef}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Frag mich etwas über Klimapolitik in Deutschland…"
-              rows={1}
-              disabled={isStreaming}
-              className="flex-1 resize-none bg-background border border-border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary placeholder:text-muted-foreground disabled:opacity-50 min-h-[44px] max-h-32"
-              style={{ height: "auto" }}
-              onInput={(e) => {
-                const target = e.target as HTMLTextAreaElement;
-                target.style.height = "auto";
-                target.style.height = Math.min(target.scrollHeight, 128) + "px";
-              }}
-            />
-            <button
-              onClick={() => sendMessage(input)}
-              disabled={!input.trim() || isStreaming}
-              className="w-11 h-11 flex items-center justify-center rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex-shrink-0"
+          {messages.map((message, index) => (
+            <div
+              key={`${message.role}-${index}`}
+              className={`rounded-xl px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap ${
+                message.role === "user"
+                  ? "bg-primary text-primary-foreground ml-auto max-w-[85%]"
+                  : "bg-muted max-w-[90%]"
+              }`}
             >
-              {isStreaming ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Send className="w-4 h-4" />
-              )}
-            </button>
-          </div>
-          <p className="text-xs text-muted-foreground mt-2 text-center">
-            Enter zum Senden · Shift+Enter für neue Zeile
-          </p>
-        </div>
-      </div>
+              {message.content}
+            </div>
+          ))}
+
+          {pending && (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Antwort wird erstellt ...
+            </div>
+          )}
+
+          {error && (
+            <div className="rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+              {error}
+            </div>
+          )}
+
+          <div ref={endRef} />
+        </CardContent>
+      </Card>
+
+      <form
+        className="flex gap-2"
+        onSubmit={(event) => {
+          event.preventDefault();
+          send(input);
+        }}
+      >
+        <input
+          value={input}
+          onChange={(event) => setInput(event.target.value)}
+          placeholder="Frage zu Klima und Wirtschaft ..."
+          aria-label="Nachricht an den KI-Chat"
+          className="flex-1 rounded-lg border bg-background px-4 py-3 text-sm outline-none focus:border-primary"
+          disabled={pending}
+        />
+        <Button type="submit" disabled={pending || input.trim().length === 0} className="px-4">
+          <Send className="w-4 h-4" />
+        </Button>
+        {messages.length > 0 && (
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => {
+              setMessages([]);
+              setError(null);
+            }}
+            disabled={pending}
+            aria-label="Gespräch zurücksetzen"
+          >
+            <RotateCcw className="w-4 h-4" />
+          </Button>
+        )}
+      </form>
+
+      <p className="text-xs text-muted-foreground">
+        Antworten können falsch sein. Das Modell kennt die Seiten dieser Website, prüft aber keine
+        Quellen. Keine personenbezogenen Daten eingeben.
+      </p>
     </div>
   );
 }
