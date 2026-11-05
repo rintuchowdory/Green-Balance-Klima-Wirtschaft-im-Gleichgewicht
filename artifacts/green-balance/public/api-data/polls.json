@@ -1,0 +1,42 @@
+[
+  {
+    "id": 1,
+    "question": "Sollte Deutschland früher aus der Kohle aussteigen als 2038?",
+    "options": [
+      { "id": 1, "text": "Ja, deutlich früher", "votes": 0 },
+      { "id": 2, "text": "Nein, am beschlossenen Plan festhalten", "votes": 0 },
+      { "id": 3, "text": "Erst wenn der Strukturwandel finanziert ist", "votes": 0 }
+    ],
+    "totalVotes": 0
+  },
+  {
+    "id": 2,
+    "question": "Wie bewerten Sie ein Tempolimit von 130 km/h auf Autobahnen?",
+    "options": [
+      { "id": 4, "text": "Sinnvoll für Klima und Sicherheit", "votes": 0 },
+      { "id": 5, "text": "Wirkung zu klein, nicht nötig", "votes": 0 },
+      { "id": 6, "text": "Nur auf besonders belasteten Abschnitten", "votes": 0 }
+    ],
+    "totalVotes": 0
+  },
+  {
+    "id": 3,
+    "question": "Ist der CO₂-Preis das richtige Instrument für Gebäude und Verkehr?",
+    "options": [
+      { "id": 7, "text": "Ja, marktwirtschaftlich und treffsicher", "votes": 0 },
+      { "id": 8, "text": "Nein, lieber Verbote und Förderung", "votes": 0 },
+      { "id": 9, "text": "Ja, aber mit stärkerem sozialen Ausgleich", "votes": 0 }
+    ],
+    "totalVotes": 0
+  },
+  {
+    "id": 4,
+    "question": "Sollte es einen staatlich gedeckelten Industriestrompreis geben?",
+    "options": [
+      { "id": 10, "text": "Ja, für alle energieintensiven Branchen", "votes": 0 },
+      { "id": 11, "text": "Nein, der Markt soll es regeln", "votes": 0 },
+      { "id": 12, "text": "Nur befristet und an Investitionen gekoppelt", "votes": 0 }
+    ],
+    "totalVotes": 0
+  }
+]

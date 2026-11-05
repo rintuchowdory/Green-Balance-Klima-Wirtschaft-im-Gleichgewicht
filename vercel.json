@@ -5,6 +5,34 @@
   "installCommand": "pnpm install --no-frozen-lockfile",
   "rewrites": [
     {
+      "source": "/api/conflicts",
+      "destination": "/api-data/conflicts.json"
+    },
+    {
+      "source": "/api/states",
+      "destination": "/api-data/states.json"
+    },
+    {
+      "source": "/api/polls",
+      "destination": "/api-data/polls.json"
+    },
+    {
+      "source": "/api/dashboard/summary",
+      "destination": "/api-data/dashboard-summary.json"
+    },
+    {
+      "source": "/api/dashboard/co2",
+      "destination": "/api-data/dashboard-co2.json"
+    },
+    {
+      "source": "/api/dashboard/energy",
+      "destination": "/api-data/dashboard-energy.json"
+    },
+    {
+      "source": "/api/dashboard/jobs",
+      "destination": "/api-data/dashboard-jobs.json"
+    },
+    {
       "source": "/((?!api/).*)",
       "destination": "/index.html"
     }

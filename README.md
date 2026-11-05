@@ -29,6 +29,22 @@ API-Proxy nicht (auf Vercel kam zeitweise HTTP 508 zurück), greifen Konflikt-At
 Bundesländer auf `artifacts/green-balance/src/lib/fallback-data.ts` zurück: derselbe Datensatz,
 im Frontend mitgebaut. Die Seiten bleiben damit gefüllt, auch wenn das Backend schweigt.
 
+## Schreibgeschützte Demo-Daten
+
+Der API-Server rechnet Konflikte, Bundesländer und Dashboard-Reihen aus Code, nicht aus einer
+Datenbank. Genau diese Antworten liegen deshalb als JSON im Frontend
+(`artifacts/green-balance/public/api-data/`) und werden per `vercel.json`-Rewrite unter
+`/api/...` ausgeliefert:
+
+```bash
+cd artifacts/api-server
+bash scripts/export-api-data.sh   # startet den Server, holt alle GET-Antworten, schreibt die JSONs
+```
+
+Damit funktionieren Dashboard, Konflikt-Atlas, Bundesländer und Meinungen auch dann, wenn das
+`api-server`-Projekt auf Vercel nicht deployt. Nur schreibende Aufrufe (Abstimmen, Simulator,
+KI-Chat) brauchen den laufenden API-Server.
+
 ## Stack
 
 - **Frontend:** React + Vite + Tailwind CSS + Framer Motion + Recharts
