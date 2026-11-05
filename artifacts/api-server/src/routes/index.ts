@@ -1,12 +1,12 @@
 import { Router, type IRouter } from "express";
-import healthRouter from "./health";
-import dashboardRouter from "./dashboard";
-import conflictsRouter from "./conflicts";
-import statesRouter from "./states";
-import pollsRouter from "./polls";
-import debateRouter from "./debate";
-import simulatorRouter from "./simulator";
-import openaiRouter from "./openai/index";
+import healthRouter from "./health.js";
+import dashboardRouter from "./dashboard.js";
+import conflictsRouter from "./conflicts.js";
+import statesRouter from "./states.js";
+import pollsRouter from "./polls.js";
+import debateRouter from "./debate.js";
+import simulatorRouter from "./simulator.js";
+import openaiRouter from "./openai/index.js";
 
 const router: IRouter = Router();
 
