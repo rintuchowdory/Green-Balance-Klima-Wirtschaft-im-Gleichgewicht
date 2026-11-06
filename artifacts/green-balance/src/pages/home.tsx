@@ -72,7 +72,7 @@ export default function Home() {
                     <TrendingDown className="w-4 h-4" />
                     CO₂-Emissionen
                   </CardDescription>
-                  <CardTitle className="text-3xl">{summary.co2TotalMt.toLocaleString('de-DE')} Mt</CardTitle>
+                  <CardTitle className="text-3xl">{Number(summary.co2TotalMt ?? 0).toLocaleString('de-DE')} Mt</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className={`text-sm ${summary.co2Change < 0 ? 'text-green-500' : 'text-red-500'}`}>
@@ -106,7 +106,7 @@ export default function Home() {
                     <Briefcase className="w-4 h-4" />
                     Grüne Jobs
                   </CardDescription>
-                  <CardTitle className="text-3xl">{summary.greenJobs.toLocaleString('de-DE')}k</CardTitle>
+                  <CardTitle className="text-3xl">{Number(summary.greenJobs ?? 0).toLocaleString('de-DE')}k</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className={`text-sm ${summary.greenJobsChange > 0 ? 'text-green-500' : 'text-red-500'}`}>
